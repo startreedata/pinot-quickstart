@@ -1,0 +1,103 @@
+version: "3.7"
+
+services:
+
+  producer:
+    build: 
+      context: docker/producer
+    container_name: producer
+    environment:
+      - SCHEMA=/code/schema.json
+      - BOOTSTRAPSERVER=kafka:9092
+      - TOPIC=movie_ratings
+      - DATA=/tmp/movies.json
+      - LIMIT=1000000
+    volumes:
+      - ./data/:/tmp/
+
+  pinot-client:
+    build: 
+      context: docker/client
+    container_name: pinot-client
+    # RUN cd apache-pinot-1.0.0 && ./bin/pinot-admin.sh AddTable -schemaFile $SCHEMA  -realtimeTableConfigFile $TABLE -exec
+    command: [
+      "./apache-pinot-1.0.0-bin/bin/pinot-admin.sh", "AddTable", 
+      "-schemaFile", "/tmp/ratings.schema.json", 
+      "-realtimeTableConfigFile", "/tmp/ratings.table.json", 
+      "-controllerHost", "pinot-controller", 
+      "-exec"
+    ]
+    depends_on:
+      - pinot-controller
+    volumes:
+      - ./table/:/tmp/
+
+  pinot-zookeeper:
+    image: zookeeper:latest
+    container_name: pinot-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  pinot-controller:
+    image: apachepinot/pinot:1.0.0
+    command: "StartController -zkAddress pinot-zookeeper:2181"
+    container_name: pinot-controller
+    hostname: pinot-controller
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
+    depends_on:
+      - pinot-zookeeper
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9000"]
+        interval: 30s
+        timeout: 10s
+        retries: 10
+
+  pinot-broker:
+    image: apachepinot/pinot:1.0.0
+    command: "StartBroker -zkAddress pinot-zookeeper:2181"
+    restart: unless-stopped
+    container_name: "pinot-broker"
+    ports:
+      - "8099:8099"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
+    depends_on:
+      - pinot-controller
+
+  pinot-server:
+    image: apachepinot/pinot:1.0.0
+    command: "StartServer -zkAddress pinot-zookeeper:2181"
+    restart: unless-stopped
+    container_name: "pinot-server"
+    ports:
+      - "8098:8098"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx16G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
+    depends_on:
+      - pinot-broker
+
+  kafka:
+    image: docker.io/bitnami/kafka:3.6
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft settings
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
