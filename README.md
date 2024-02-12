@@ -25,8 +25,7 @@ docker compose up -d
 ```
 
 ## Makefile
-
-To simplify seeding Apache Pinot by defining the Pinot tables and loading it with data. The [Makefile](./Makefile) contains all the commands. Run the all using the single command below.
+To simplify seeding Apache Pinot, define all the commands to create the Pinot tables and load them with data in a [Makefile](./Makefile). Run the all using the single command below.
 
 ```bash
 make all
