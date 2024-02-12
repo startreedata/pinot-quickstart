@@ -56,9 +56,9 @@ def send(p, topic, gen:Generator, limit:int=100000):
             value=data, 
             on_delivery=delivery_report)
         
-    # Wait for any outstanding messages to be delivered and delivery report
-    # callbacks to be triggered.
-    p.flush()
+        # Wait for any outstanding messages to be delivered and delivery report
+        # callbacks to be triggered.
+        p.flush()
 
 if __name__== "__main__":
     bootstrap = os.getenv('BOOTSTRAPSERVER','kafka:9092')

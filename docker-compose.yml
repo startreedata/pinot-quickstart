@@ -12,25 +12,10 @@ services:
       - TOPIC=movie_ratings
       - DATA=/tmp/movies.json
       - LIMIT=1000000
+    depends_on:
+      - kafka
     volumes:
       - ./data/:/tmp/
-
-  pinot-client:
-    build: 
-      context: docker/client
-    container_name: pinot-client
-    # RUN cd apache-pinot-1.0.0 && ./bin/pinot-admin.sh AddTable -schemaFile $SCHEMA  -realtimeTableConfigFile $TABLE -exec
-    command: [
-      "./apache-pinot-1.0.0-bin/bin/pinot-admin.sh", "AddTable", 
-      "-schemaFile", "/tmp/ratings.schema.json", 
-      "-realtimeTableConfigFile", "/tmp/ratings.table.json", 
-      "-controllerHost", "pinot-controller", 
-      "-exec"
-    ]
-    depends_on:
-      - pinot-controller
-    volumes:
-      - ./table/:/tmp/
 
   pinot-zookeeper:
     image: zookeeper:latest
@@ -58,6 +43,9 @@ services:
         interval: 30s
         timeout: 10s
         retries: 10
+    volumes:
+      - ./table/:/tmp/pinot/table/
+      - ./data/:/tmp/pinot/data/
 
   pinot-broker:
     image: apachepinot/pinot:1.0.0
@@ -89,6 +77,11 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9092"]
+        interval: 30s
+        timeout: 10s
+        retries: 10
     environment:
       # KRaft settings
       - KAFKA_CFG_NODE_ID=0
