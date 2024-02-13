@@ -7,7 +7,7 @@ flowchart LR
 
 Stream-->k[Apache Kafka]-->p[Apache Pinot]
 
-Batch-->k
+Batch-->p
 
 p-->mrp[Movie Ratings]
 
