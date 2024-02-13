@@ -9,6 +9,10 @@ schema:
 		-outputDir="/table" \
 		-dimensions=""
 
+create:
+	docker compose build --no-cache
+	docker compose up -d
+
 topic:
 	-docker exec -it kafka kafka-topics.sh \
 		--bootstrap-server localhost:9092 \
@@ -36,5 +40,7 @@ import:
 		LaunchDataIngestionJob \
 		-jobSpecFile /tmp/pinot/table/jobspec.yaml
 
+destroy:
+	docker compose down
 
-all: topic tables import
+all: create topic tables import

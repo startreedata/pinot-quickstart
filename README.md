@@ -14,16 +14,6 @@ p-->mrp[Movie Ratings]
 p-->Movies
 ```
 
-## Docker Compose 
-
-First you will need to build the images then run docker compose.
-
-```bash
-docker compose build --no-cache
-
-docker compose up -d
-```
-
 ## Makefile
 To simplify seeding Apache Pinot, define all the commands to create the Pinot tables and load them with data in a [Makefile](./Makefile). Run the all using the single command below.
 
@@ -54,6 +44,12 @@ You should see a similar result:
 
 ![alt](./images/results.png)
 
+
+To destroy they demo, run the command below.
+
+```bash
+docker compose down
+```
 
 ## Trouble Shooting
 
