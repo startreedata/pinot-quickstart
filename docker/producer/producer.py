@@ -29,7 +29,7 @@ class RatingGenerator(Generator):
         key = random.randint(self.df['movieId'].min(), self.df['movieId'].max())
         data = json.dumps({
               "movieId": key,
-              "rating": round(random.uniform(0.0, 1.0), 2),
+              "rating": round(random.uniform(0.0, 10.0), 2),
               "ratingTime": round(time.time() * 1000)
         })
         return str(key), data.encode('utf-8')
