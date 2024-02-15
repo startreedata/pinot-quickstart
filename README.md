@@ -18,7 +18,7 @@ p-->Movies
 To simplify seeding Apache Pinot, define all the commands to create the Pinot tables and load them with data in a [Makefile](./Makefile). Run the all using the single command below.
 
 ```bash
-make all
+make base
 ```
 
 ## Apache Pinot

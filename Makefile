@@ -45,4 +45,4 @@ import:
 destroy:
 	docker compose down
 
-all: create topic tables import
+base: create topic tables import
