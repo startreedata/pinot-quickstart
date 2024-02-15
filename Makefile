@@ -12,6 +12,7 @@ schema:
 create:
 	docker compose build --no-cache
 	docker compose up -d
+	sleep 20
 
 topic:
 	-docker exec -it kafka kafka-topics.sh \
@@ -25,6 +26,7 @@ tables:
 		-tableConfigFile /tmp/pinot/table/ratings.table.json \
 		-schemaFile /tmp/pinot/table/ratings.schema.json \
 		-exec
+	sleep 10
 
 	docker exec -it pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
