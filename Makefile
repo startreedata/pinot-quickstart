@@ -37,7 +37,7 @@ tables:
 	sleep 10
 
 import:
-	docker exec -it pinot-controller ./bin/pinot-admin.sh \
+	docker exec pinot-controller ./bin/pinot-admin.sh \
 		LaunchDataIngestionJob \
 		-jobSpecFile /tmp/pinot/table/jobspec.yaml
 
