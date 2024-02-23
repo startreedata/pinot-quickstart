@@ -12,21 +12,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Install dependencies and fire up docker-compose
-      run: make create
+      - name: Install dependencies and fire up docker-compose
+        run: make create
 
-    - name: Create Kafka Topic
-      run: make topic
+      - name: Create Kafka Topic
+        run: make topic
 
-    - name: Create Pinot Tables
-      run: make tables
+      - name: Create Pinot Tables
+        run: make tables
 
-    - name: Import Data
-      run: make import
+      - name: Import Data
+        run: make import
 
-    #TODO: add step to check REST url of query console
-    
-    - name: Testdown
-      run: make destroy
+      - name: Valudate that cluster is Up and Schemas are deployed
+        run: make validate
+
+      - name: Testdown
+        run: make destroy

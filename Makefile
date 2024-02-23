@@ -15,20 +15,20 @@ create:
 	sleep 20
 
 topic:
-	-docker exec -it kafka kafka-topics.sh \
+	docker exec kafka kafka-topics.sh \
 		--bootstrap-server localhost:9092 \
 		--create \
 		--topic movie_ratings
 
 tables:
-	docker exec -it pinot-controller ./bin/pinot-admin.sh \
+	docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
 		-tableConfigFile /tmp/pinot/table/ratings.table.json \
 		-schemaFile /tmp/pinot/table/ratings.schema.json \
 		-exec
 	sleep 10
 
-	docker exec -it pinot-controller ./bin/pinot-admin.sh \
+	docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
 		-tableConfigFile /tmp/pinot/table/movies.table.json \
 		-schemaFile /tmp/pinot/table/movies.schema.json \
@@ -36,13 +36,24 @@ tables:
 
 	sleep 10
 
-
 import:
 	docker exec -it pinot-controller ./bin/pinot-admin.sh \
 		LaunchDataIngestionJob \
 		-jobSpecFile /tmp/pinot/table/jobspec.yaml
 
+validate:
+	@echo "\n🍷 Getting cluster info..."
+
+	@curl -sX 'GET' \
+      'http://localhost:9000/cluster/info' \
+      -H 'accept: application/json'
+	
+	@echo "\n🍷 Getting Schemas..."     
+	@curl -sX 'GET' \
+      'http://localhost:9000/schemas' \
+      -H 'accept: application/json'
+
 destroy:
-	docker compose down
+	docker compose down -v
 
 base: create topic tables import
