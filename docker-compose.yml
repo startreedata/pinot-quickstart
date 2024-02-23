@@ -1,22 +1,6 @@
 version: "3.7"
 
 services:
-  
-  #  cli-producer:
-  #    build:
-  #      context: docker/kcat-producer
-  #    container_name: kcat-producer
-  #    environment:
-  #      KAFKA_BROKER: "kafka:9092"
-  #      KAFKA_TOPIC: "movie_ratings_cli"
-  #      MOVIES_FILE: "/tmp/movies.json"
-  #      #LOG_LEVEL: "DEBUG"
-  #      LIMIT: 1000000
-  #    depends_on:
-  #      - kafka
-  #    volumes:
-  #      - ./data/:/tmp/
-  
   producer:
     build:
       context: docker/producer
