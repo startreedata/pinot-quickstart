@@ -17,8 +17,8 @@ jobs:
       - name: Install dependencies and fire up docker-compose
         run: make create
 
-      - name: Create Kafka Topic
-        run: make topic
+#      - name: Create Kafka Topic
+#        run: make topic
 
       - name: Create Pinot Tables
         run: make tables

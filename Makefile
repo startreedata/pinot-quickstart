@@ -56,4 +56,4 @@ validate:
 destroy:
 	docker compose down -v
 
-base: create topic tables import
+base: create tables import
