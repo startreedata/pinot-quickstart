@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: sergeysova/jq-action@v2
+        with:
+          cmd: jq -n env
       - uses: actions/checkout@v3
 
       - name: Set up Docker permissions
@@ -35,9 +38,6 @@ jobs:
           
       - name: Install dependencies and fire up docker-compose
         run: make create
-      
-#      - name: Create Kafka Topic
-#        run: make topic
 
       - name: Create Pinot Tables
         run: make tables
