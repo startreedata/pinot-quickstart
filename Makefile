@@ -13,7 +13,19 @@ schema:
 create:
 	docker compose build --no-cache
 	docker compose up -d
-	sleep 20
+	@echo "Waiting for Pinot Controller to be ready..."
+	@while ! curl -sX GET http://localhost:9000/health -H 'accept: application/json'; do \
+			sleep 1; \
+			echo "Waiting for Pinot Controller..."; \
+		done
+	@echo "🍷 Pinot Controller is ready."
+	
+	@echo "🪲 Waiting for Kafka to be ready..."
+	@while ! nc -z localhost 9092; do \
+		sleep 1; \
+		echo "Waiting for Kafka..."; \
+	done
+	@echo "🪲 Kafka is ready."
 
 topic:
 	docker exec kafka kafka-topics.sh \
@@ -22,26 +34,12 @@ topic:
 		--topic movie_ratings
 
 tables:
-	@echo "Waiting for Pinot Controller to be ready..."
-	@while ! curl -sX GET http://localhost:9000/cluster/info -H 'accept: application/json'; do \
-    		sleep 1; \
-    		echo "Waiting for Pinot Controller..."; \
-    	done
-	@echo "🍷 Pinot Controller is ready."
-    
-	@echo "Waiting for Kafka to be ready..."
-	@while ! nc -z localhost 9092; do \
-		sleep 1; \
-		echo "Waiting for Kafka..."; \
-	done
-	@echo "Kafka is ready."
-
 	docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
 		-tableConfigFile /tmp/pinot/table/ratings.table.json \
 		-schemaFile /tmp/pinot/table/ratings.schema.json \
 		-exec
-	sleep 10
+	sleep 5
 
 	docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
