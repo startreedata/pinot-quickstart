@@ -12,10 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: sergeysova/jq-action@v2
-        with:
-          cmd: jq -n env
       - uses: actions/checkout@v3
+      - uses: sergeysova/jq-action@v2
 
       - name: Set up Docker permissions
         run: |
