@@ -11,14 +11,32 @@ schema:
 		-dimensions=""
 
 create:
-	docker compose build --no-cache
+	#docker compose build --no-cache
+	docker compose build
 	docker compose up -d
 	@echo "Waiting for Pinot Controller to be ready..."
-	@while ! curl -sX GET http://localhost:9000/health -H 'accept: application/json'; do \
-			sleep 1; \
-			echo "Waiting for Pinot Controller..."; \
-		done
+	@while true; do \
+		STATUS_CODE=$$(curl -s -o /dev/null -w '%{http_code}' \
+			'http://localhost:9000/health'); \
+		if [ "$$STATUS_CODE" -eq 200 ]; then \
+			break; \
+		fi; \
+		sleep 2; \
+		echo "Waiting for Pinot Controller..."; \
+	done
 	@echo "🍷 Pinot Controller is ready."
+
+	@echo "Waiting for Pinot Broker to be ready..."
+	@while true; do \
+		STATUS_CODE=$$(curl -s -o /dev/null -w '%{http_code}' \
+			'http://localhost:8099/health'); \
+		if [ "$$STATUS_CODE" -eq 200 ]; then \
+			break; \
+		fi; \
+		sleep 1; \
+		echo "Waiting for Pinot Broker..."; \
+	done
+	@echo "🍷 Pinot Broker is ready to receive queries."
 	
 	@echo "🪲 Waiting for Kafka to be ready..."
 	@while ! nc -z localhost 9092; do \
@@ -36,17 +54,17 @@ topic:
 tables:
 	docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
-		-tableConfigFile /tmp/pinot/table/ratings.table.json \
-		-schemaFile /tmp/pinot/table/ratings.schema.json \
-		-exec
-	sleep 5
-
-	docker exec pinot-controller ./bin/pinot-admin.sh \
-		AddTable \
 		-tableConfigFile /tmp/pinot/table/movies.table.json \
 		-schemaFile /tmp/pinot/table/movies.schema.json \
 		-exec
 
+	sleep 5
+
+	docker exec pinot-controller ./bin/pinot-admin.sh \
+		AddTable \
+		-tableConfigFile /tmp/pinot/table/ratings.table.json \
+		-schemaFile /tmp/pinot/table/ratings.schema.json \
+		-exec
 import:
 	docker exec pinot-controller ./bin/pinot-admin.sh \
 		LaunchDataIngestionJob \
