@@ -11,8 +11,7 @@ schema:
 		-dimensions=""
 
 create:
-	#docker compose build --no-cache
-	docker compose build
+	docker compose build --no-cache
 	docker compose up -d
 	@echo "Waiting for Pinot Controller to be ready..."
 	@while true; do \
