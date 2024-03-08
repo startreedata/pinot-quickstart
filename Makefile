@@ -23,7 +23,7 @@ topic:
 
 tables:
 	@echo "Waiting for Pinot Controller to be ready..."
-	@while ! nc -z localhost 9000; do \
+	@while ! curl -sX GET http://localhost:9000/cluster/info -H 'accept: application/json'; do \
     		sleep 1; \
     		echo "Waiting for Pinot Controller..."; \
     	done
