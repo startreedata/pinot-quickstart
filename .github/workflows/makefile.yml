@@ -16,7 +16,7 @@ jobs:
 
       - name: Install dependencies and fire up docker-compose
         run: make create
-
+      
 #      - name: Create Kafka Topic
 #        run: make topic
 
@@ -26,8 +26,8 @@ jobs:
       - name: Import Data
         run: make import
 
-      - name: Valudate that cluster is Up and Schemas are deployed
+      - name: Validate that cluster is Up and Schemas are deployed
         run: make validate
 
-      - name: Testdown
+      - name: Teardown
         run: make destroy
