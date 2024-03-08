@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: sergeysova/jq-action@v2
 
       - name: Set up Docker permissions
@@ -21,7 +21,7 @@ jobs:
           newgrp docker
 
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.docker-compose-cache
           key: ${{ runner.os }}-docker-compose-${{ github.sha }}

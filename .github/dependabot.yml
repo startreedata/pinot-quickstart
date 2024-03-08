@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    # Look for a `docker-compose.yml` in the root directory
+    directory: "/"
+    schedule:
+      interval: "daily"
