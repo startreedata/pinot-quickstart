@@ -1,0 +1,56 @@
+name: 💨 Smoke Test - Makefile
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sergeysova/jq-action@v2
+
+      - name: Set up Docker permissions
+        run: |
+          sudo usermod -aG docker $(whoami)
+          newgrp docker
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-compose-cache
+          key: ${{ runner.os }}-docker-compose-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-compose-
+
+      - name: Load cached Docker layers
+        run: |
+          if [ -d "/tmp/.docker-compose-cache" ]; then
+            docker load < /tmp/.docker-compose-cache/layers.tar || true
+          fi
+          
+      - name: Install dependencies and fire up docker-compose
+        run: make create
+
+      - name: Create Pinot Tables
+        run: make tables
+
+      - name: Import Data
+        run: make import
+
+      - name: Validate that cluster is Up and Schemas are deployed
+        run: make validate
+
+      - name: Teardown
+        run: make destroy
+
+      - name: Save Docker layers to cache
+        run: |
+          mkdir -p /tmp/.docker-compose-cache
+          docker save $(docker-compose config | grep 'image:' | awk '{print $2}') | gzip > /tmp/.docker-compose-cache/layers.tar
+          
