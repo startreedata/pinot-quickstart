@@ -27,7 +27,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   pinot-controller:
-    image: apachepinot/pinot:1.0.0-21-openjdk
+    image: apachepinot/pinot:1.1.0-21-openjdk
     command: "StartController -zkAddress pinot-zookeeper:2181"
     container_name: pinot-controller
     hostname: pinot-controller
@@ -48,7 +48,7 @@ services:
       - ./data/:/tmp/pinot/data/
 
   pinot-broker:
-    image: apachepinot/pinot:1.0.0-21-openjdk
+    image: apachepinot/pinot:1.1.0-21-openjdk
     command: "StartBroker -zkAddress pinot-zookeeper:2181"
     restart: unless-stopped
     container_name: "pinot-broker"
@@ -65,7 +65,7 @@ services:
       retries: 10
 
   pinot-server:
-    image: apachepinot/pinot:1.0.0-21-openjdk
+    image: apachepinot/pinot:1.1.0-21-openjdk
     command: "StartServer -zkAddress pinot-zookeeper:2181"
     restart: unless-stopped
     container_name: "pinot-server"
