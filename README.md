@@ -38,12 +38,12 @@ p-->Movies
 To quickly see the demonstration in action, you can use the following command:
 
 ```bash
-make base
+make
 ```
 
 For a detailed step-by-step setup, please refer to the [Step-by-Step Details](#step-by-step-details) section.
 
-If you're ready to explore the advanced features, jump directly to the [Apache Pinot Advanced Usage](#apache-pinot-advanced-usage) section to run a multi-stage join between the ratings and movies tables.
+If you're ready to explore the advanced features, jump directly to the [Apache Pinot Advanced Usage](#step-5-apache-pinot-advanced-usage) section to run a multi-stage join between the ratings and movies tables.
 
 ## Step-by-Step Details
 
