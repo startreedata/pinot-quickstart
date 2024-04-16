@@ -40,11 +40,11 @@ jobs:
       - name: Create Pinot Tables
         run: make tables
 
-      - name: Import Data
-        run: make import
-
       - name: Validate that cluster is Up and Schemas are deployed
         run: make validate
+
+      - name: Import Data
+        run: make import
 
       - name: Teardown
         run: make destroy
