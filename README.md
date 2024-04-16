@@ -1,6 +1,7 @@
 # Apache Pinot™ quickstart readme
 
 Run the Apache Pinot™ quickstart in this repository to load one streaming data source (`movie_ratings`) and one batch data source (`movies`). 
+
 Then, see how to view, join, and query this data in Pinot.
 
   - [Quickstart workflow diagram](#quickstart-workflow-diagram)
