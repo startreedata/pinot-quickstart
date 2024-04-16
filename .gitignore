@@ -1,2 +1,7 @@
 logs
-.venv
+# Python virtual environments
+venv/
+myenv/
+*.venv
+env/
+ENV/

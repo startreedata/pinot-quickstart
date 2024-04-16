@@ -1,4 +1,4 @@
 confluent-kafka
-Faker
 numpy
 pandas
+pyarrow

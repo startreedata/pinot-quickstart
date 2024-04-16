@@ -1,6 +1,25 @@
-# Pinot Getting Started
+# Pinot Getting Started Guide
 
-This repository gets you started with Apache Pinot. It loads two sources of data: a real-time stream of movie ratings and a batch source of movies. The two data sets can be joined together in Apache Pinot.
+Welcome to the Apache Pinot Getting Started guide.
+This repository will help you set up and run a demonstration that involves streaming and batch data sources.
+The demonstration includes a real-time stream of movie ratings and a batch data source of movies, which can be joined in Apache Pinot for querying.
+
+<!-- TOC -->
+* [Pinot Getting Started Guide](#pinot-getting-started-guide)
+  * [Architecture Diagram](#architecture-diagram-)
+  * [A Quick Shortcut](#a-quick-shortcut)
+  * [Step-by-Step Details](#step-by-step-details)
+    * [Step 1: Build and Launch with Docker](#step-1-build-and-launch-with-docker)
+    * [Step 2: Create a Kafka Topic](#step-2-create-a-kafka-topic)
+    * [Step 3: Configure Pinot Tables](#step-3-configure-pinot-tables)
+    * [Step 4: Load Data into the Movies Table](#step-4-load-data-into-the-movies-table)
+    * [Step 5: Apache Pinot Advanced Usage](#step-5-apache-pinot-advanced-usage)
+  * [Clean Up](#clean-up)
+  * [Troubleshooting](#troubleshooting)
+  * [Further Reading](#further-reading)
+<!-- TOC -->
+
+## Architecture Diagram 
 
 ```mermaid
 flowchart LR
@@ -14,27 +33,28 @@ p-->mrp[Movie Ratings]
 p-->Movies
 ```
 
-## Just Run It
+## A Quick Shortcut
 
-Use `make` to just see the demonstration run. Run the command below. To delve into the setup, go to [step by step](#step-by-step) section.
+To quickly see the demonstration in action, you can use the following command:
 
 ```bash
-make base
+make
 ```
 
-Skip to the [Apache Pinot](#apache-pinot) section to run the `multi-stage` join between the ratings and movies table.
+For a detailed step-by-step setup, please refer to the [Step-by-Step Details](#step-by-step-details) section.
 
-## Step-By-Step Details
+If you're ready to explore the advanced features, jump directly to the [Apache Pinot Advanced Usage](#step-5-apache-pinot-advanced-usage) section to run a multi-stage join between the ratings and movies tables.
 
-This section is a step-by-step outline of the process to get this demonstration running. It describes the steps in more detail.
+## Step-by-Step Details
 
-### Step 1 - Build and Compose Up with Docker
+This section provides detailed instructions to get the demonstration up and running from scratch.
 
-Apache Pinot's can query real-time streaming data flowing through streaming platforms like Apache Kafka.
+### Step 1: Build and Launch with Docker
 
-To mock streaming data, this quick start has a built-in stream producer that writes to Kafka using Python. All Python-related details for this producer can be found in its [Dockerfile](docker/producer/Dockerfile).
+Apache Pinot queries real-time data through streaming platforms like Apache Kafka. 
+This setup includes a mock stream producer using Python to write data into Kafka.
 
-Build the producer image and start all the services by running these commands.
+First, build the producer image and start all services using the following commands:
 
 ```bash
 docker compose build --no-cache
@@ -42,19 +62,16 @@ docker compose build --no-cache
 docker compose up -d
 ```
 
-The [docker-compose](./docker-compose.yml) file starts up these containers:
+The `docker-compose.yml` file configures the following services:
 
-- Dedicated Zookeeper for Pinot
-- Pinot Controller
-- Pinot Broker
-- Pinot Server
-- Kraft "Zookeeperless" Kafka
-- The python producer
+- Zookeeper (dedicated to Pinot)
+- Pinot Controller, Broker, and Server
+- Kraft (Zookeeperless Kafka)
+- Python producer
 
+### Step 2: Create a Kafka Topic
 
-### Step 2 - Create a Kafka Topic
-
-Create the Kafka topic for the producer to write into and for the Pinot table to read from.
+Next, create a Kafka topic for the producer to send data to, which Pinot will then read from:
 
 ```bash
 docker exec -it kafka kafka-topics.sh \
@@ -63,7 +80,7 @@ docker exec -it kafka kafka-topics.sh \
     --topic movie_ratings
 ```
 
-At this point, the producer should be sending data to a topic in Kafka called `movie_ratings`. You can test this by running the command below.
+To verify the stream, check the data flowing into the Kafka topic:
 
 ```bash
 docker exec -it kafka \
@@ -72,14 +89,15 @@ docker exec -it kafka \
     --topic movie_ratings
 ```
 
-### Step 3 - Create the Pinot Tables
+### Step 3: Configure Pinot Tables
 
-There are two tables we need to create in Pinot:
+In Pinot, create two types of tables:
 
-- A REALTIME table called `movie_ratings`.
-- An OFFLINE table called `movies`.
+1. A REALTIME table for streaming data (`movie_ratings`).
+2. An OFFLINE table for batch data (`movies`).
 
-To query the Kafka topic in Pinot, we add the real-time table using the `pinot-admin` CLI, providing it with a [schema](./table/ratings.schema.json) and a [table configuration](./table/ratings.table.json). The table configuration contains the connection information to Kafka.
+To query the Kafka topic in Pinot, we add the real-time table using the `pinot-admin` CLI, providing it with a [schema](./table/ratings.schema.json) and a [table configuration](./table/ratings.table.json). 
+The table configuration contains the connection information to Kafka.
 
 ```bash
 docker exec -it pinot-controller ./bin/pinot-admin.sh \
@@ -101,11 +119,13 @@ docker exec -it pinot-controller ./bin/pinot-admin.sh \
     -exec
 ```
 
-Once added, the OFFLINE table will not have any data. Let's add data in the next step.
+Once added, the OFFLINE table will not have any data.
+Let's add data in the next step.
 
-### Step 4 - Load the Movies Table
 
-We again leverage the `pinot-admin.sh` CLI to load data into an OFFLINE table.
+### Step 4: Load Data into the Movies Table
+
+Use the following command to load data into the OFFLINE movies table:
 
 ```bash
 docker exec -it pinot-controller ./bin/pinot-admin.sh \
@@ -113,49 +133,46 @@ docker exec -it pinot-controller ./bin/pinot-admin.sh \
     -jobSpecFile /tmp/pinot/table/jobspec.yaml
 ```
 
-In this command, we use a YAML [file](table/jobspec.yaml) that provides the specification for loading the [movies data](data/movies.json). Once this job is completed, you can query the movies table [here](http://localhost:9000/#/query?query=select+*+from+movies+limit+10&tracing=false&useMSE=false).
+Now, both the REALTIME and OFFLINE tables are queryable.
 
-Now that you can query both the REALTIME and OFFLINE tables, you can perform a JOIN query in the next section.
+### Step 5: Apache Pinot Advanced Usage
 
-## Apache Pinot
-
-Click to open the Pinot console [here](http://localhost:9000/#/query). To perform a join, you'll need to select the `Use Multi-Stage Engine` before clicking on `RUN QUERY`.
+To perform complex queries such as joins, open the Pinot console [here](http://localhost:9000/#/query) and enable `Use Multi-Stage Engine`. Example query:
 
 ```sql
-select 
-    r.rating latest_rating, 
-    m.rating initial_rating, 
-    m.title, 
-    m.genres, 
-    m.releaseYear 
+select
+    r.rating latest_rating,
+    m.rating initial_rating,
+    m.title,
+    m.genres,
+    m.releaseYear
 from movies m
-left join movie_ratings r on m.movieId = r.movieId
+         left join movie_ratings r on m.movieId = r.movieId
 where r.rating > .9
 order by r.rating desc
-limit 10
-
+    limit 10
 ```
 
-You should see a similar result:
 
 ![alt](./images/results.png)
 
 
 ## Clean Up
 
-To destroy the demo, run the command below.
+To stop and remove all services related to the demonstration, run:
 
 ```bash
 docker compose down
 ```
 
-## Trouble Shooting
+## Troubleshooting
 
-If you get "No space left on device" when executing docker build.
+If you encounter "No space left on device" during the Docker build process, you can free up space with:
 
-```docker system prune -f```
+```bash
+docker system prune -f
+```
 
+## Further Reading
 
-## Getting Started
-
-Get started for yourself by visiting StarTree developer page [here](https://dev.startree.ai/docs/pinot/getting-started/quick-start)
+For more detailed tutorials and documentation, visit the StarTree developer page [here](https://dev.startree.ai/)
