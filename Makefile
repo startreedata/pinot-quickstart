@@ -1,4 +1,4 @@
-base: create tables import
+base: create tables import info
 
 schema:
 	docker run \
@@ -89,6 +89,9 @@ validate:
 		echo "Schema 'movies' not found."; \
 		exit 1; \
 	fi
+
+info:     	
+	@printf "🍷 Pinot Query UI - \033[4mhttp://localhost:9000\033[0m\n"
 
 destroy:
 	docker compose down -v
