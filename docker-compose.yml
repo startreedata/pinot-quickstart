@@ -25,7 +25,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
   
   pinot-controller:
-    image: apachepinot/pinot:1.0.0
+    image: apachepinot/pinot:1.1.0-21-openjdk
     command: "StartController -zkAddress pinot-zookeeper:2181"
     container_name: pinot-controller
     hostname: pinot-controller
@@ -37,7 +37,7 @@ services:
     depends_on:
       - pinot-zookeeper
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/health" ]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -46,7 +46,7 @@ services:
       - ./data/:/tmp/pinot/data/
 
   pinot-broker:
-    image: apachepinot/pinot:1.0.0
+    image: apachepinot/pinot:1.1.0-21-openjdk
     command: "StartBroker -zkAddress pinot-zookeeper:2181"
     restart: unless-stopped
     container_name: "pinot-broker"
@@ -56,9 +56,14 @@ services:
       JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
     depends_on:
       - pinot-controller
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8099/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
   pinot-server:
-    image: apachepinot/pinot:1.0.0
+    image: apachepinot/pinot:1.1.0-21-openjdk
     command: "StartServer -zkAddress pinot-zookeeper:2181"
     restart: unless-stopped
     container_name: "pinot-server"
@@ -77,8 +82,8 @@ services:
       - "9092:9092"
       - "29092:29092"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9092" ]
-      interval: 30s
+      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+      interval: 5s
       timeout: 10s
       retries: 10
     environment:
