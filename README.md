@@ -1,6 +1,8 @@
-# Pinot Getting Started
+# Apache Pinot™ quickstart readme
 
-This repository gets you started with Apache Pinot. It loads two sources of data: a real-time stream of movie ratings and a batch source of movies. The two data sets can be joined together in Apache Pinot.
+Run the Apache Pinot™ quickstart in this repository to load one streaming data source (`movie_ratings`) and one batch data source (`movies`). Then, see how to view, join, and query this data in Pinot.
+
+## Quickstart workflow diagram
 
 ```mermaid
 flowchart LR
@@ -14,47 +16,55 @@ p-->mrp[Movie Ratings]
 p-->Movies
 ```
 
-## Just Run It
+## Run the Pinot quickstart
 
-Use `make` to just see the demonstration run. Run the command below. To delve into the setup, go to [step by step](#step-by-step) section.
+1. [Clone this repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
+2. [Install Docker](https://docs.docker.com/get-docker/). 
+3. Choose one of the following options:
+   - [**Run the Pinot quickstart automatically**](#run-the-pinot-quickstart-automatically). Use this option to immediately load streaming and batch data in Pinot.
+   - [**Run the Pinot quickstart manually**](#run-the-pinot-quickstart-manually). Use this option to go step-by-step through the quickstart to see how it works.
+
+### Run the Pinot quickstart automatically
+
+To run the quickstart automatically, run the following in your terminal:
 
 ```bash
-make base
+ cd pinot-quickstart
+ make
 ```
 
-Skip to the [Apache Pinot](#apache-pinot) section to run the `multi-stage` join between the ratings and movies table.
+Now, skip to [view, join, and query data in Pinot](#view-join-and-query-data-in-pinot).
 
-## Step-By-Step Details
+### Run the Pinot quickstart manually
 
-This section is a step-by-step outline of the process to get this demonstration running. It describes the steps in more detail.
+To run the quickstart manually, complete the following steps:
 
-### Step 1 - Build and Compose Up with Docker
+#### Step 1: Build and launch with Docker
 
-Apache Pinot's can query real-time streaming data flowing through streaming platforms like Apache Kafka.
+Pinot queries real-time streaming data from platforms like Apache Kafka.
 
-To mock streaming data, this quick start has a built-in stream producer that writes to Kafka using Python. All Python-related details for this producer can be found in its [Dockerfile](docker/producer/Dockerfile).
+This setup includes a mock stream producer using Python to write data into Kafka.
 
-Build the producer image and start all the services by running these commands.
+To build the producer image and start all services, run the following commands:
 
 ```bash
+cd pinot-quickstart
 docker compose build --no-cache
-
 docker compose up -d
 ```
 
-The [docker-compose](./docker-compose.yml) file starts up these containers:
+The [docker-compose](./docker-compose.yml) file starts the following containers:
 
-- Dedicated Zookeeper for Pinot
-- Pinot Controller
-- Pinot Broker
-- Pinot Server
-- Kraft "Zookeeperless" Kafka
-- The python producer
+- `kafka` (Zookeeperless Kafka)
+- `pinot-zookeeper` (Zookeeper dedicated to Pinot)
+- `producer` (Python producer)
+- `pinot-controller`
+- `pinot-broker`
+- `pinot-server`
 
+#### Step 2: Create a Kafka topic
 
-### Step 2 - Create a Kafka Topic
-
-Create the Kafka topic for the producer to write into and for the Pinot table to read from.
+Create a Kafka topic for the producer to send data to, which Pinot will then read from:
 
 ```bash
 docker exec -it kafka kafka-topics.sh \
@@ -63,7 +73,7 @@ docker exec -it kafka kafka-topics.sh \
     --topic movie_ratings
 ```
 
-At this point, the producer should be sending data to a topic in Kafka called `movie_ratings`. You can test this by running the command below.
+To test the stream, verify data is flowing into the Kafka topic:
 
 ```bash
 docker exec -it kafka \
@@ -72,14 +82,14 @@ docker exec -it kafka \
     --topic movie_ratings
 ```
 
-### Step 3 - Create the Pinot Tables
+#### Step 3: Configure Pinot tables
 
-There are two tables we need to create in Pinot:
+In Pinot, create the following two types of tables:
 
-- A REALTIME table called `movie_ratings`.
-- An OFFLINE table called `movies`.
+- A REALTIME table for streaming data (`movie_ratings`)(contains information to connect to Kafka)
+- An OFFLINE table for batch data (`movies`)
 
-To query the Kafka topic in Pinot, we add the real-time table using the `pinot-admin` CLI, providing it with a [schema](./table/ratings.schema.json) and a [table configuration](./table/ratings.table.json). The table configuration contains the connection information to Kafka.
+**To add the real-time table**, use the `pinot-admin` CLI to provide a [schema](./table/ratings.schema.json) and [table configuration](./table/ratings.table.json). To do this, run the following:
 
 ```bash
 docker exec -it pinot-controller ./bin/pinot-admin.sh \
@@ -89,9 +99,9 @@ docker exec -it pinot-controller ./bin/pinot-admin.sh \
     -exec
 ```
 
-At this point, you should be able to query the topic in the Pinot [console](http://localhost:9000/#/query?query=select+*+from+movie_ratings+limit+10&tracing=false&useMSE=false).
+Now you can query the Kafka topic in the [Pinot console](http://localhost:9000/#/query?query=select+*+from+movie_ratings+limit+10&tracing=false&useMSE=false).
 
-We now do the same for the OFFLINE table using this [schema](table/movies.schema.json) and [table configuration](table/movies.table.json).
+**To create the OFFLINE table**, use `pinot-admin` CLI to provide a [schema](table/movies.schema.json) and [table configuration](table/movies.table.json). To do this, run the following:
 
 ```bash
 docker exec -it pinot-controller ./bin/pinot-admin.sh \
@@ -101,11 +111,11 @@ docker exec -it pinot-controller ./bin/pinot-admin.sh \
     -exec
 ```
 
-Once added, the OFFLINE table will not have any data. Let's add data in the next step.
+The OFFLINE table has no data. Let's add data in the next step.
 
-### Step 4 - Load the Movies Table
+#### Step 4: Load data into the movies table
 
-We again leverage the `pinot-admin.sh` CLI to load data into an OFFLINE table.
+To load data into the OFFLINE table, run the following:
 
 ```bash
 docker exec -it pinot-controller ./bin/pinot-admin.sh \
@@ -113,49 +123,53 @@ docker exec -it pinot-controller ./bin/pinot-admin.sh \
     -jobSpecFile /tmp/pinot/table/jobspec.yaml
 ```
 
-In this command, we use a YAML [file](table/jobspec.yaml) that provides the specification for loading the [movies data](data/movies.json). Once this job is completed, you can query the movies table [here](http://localhost:9000/#/query?query=select+*+from+movies+limit+10&tracing=false&useMSE=false).
+Now, you're ready to view, join, and query data in Pinot.
 
-Now that you can query both the REALTIME and OFFLINE tables, you can perform a JOIN query in the next section.
+## View, join, and query data in Pinot
 
-## Apache Pinot
+1. Open the [Pinot console](http://localhost:9000/#/query). 
+2. Click the **movies** and **movie_ratings** links to view data stored in each table. 
+3. To join the two datasets, do the following:
+   - Select the `Use Multi-Stage Engine` check box.
+   - Enter the following query under `SQL Editor`:
 
-Click to open the Pinot console [here](http://localhost:9000/#/query). To perform a join, you'll need to select the `Use Multi-Stage Engine` before clicking on `RUN QUERY`.
+        ```sql
+        select 
+            r.rating latest_rating, 
+            m.rating initial_rating, 
+            m.title, 
+            m.genres, 
+            m.releaseYear 
+        from movies m
+        left join movie_ratings r on m.movieId = r.movieId
+        where r.rating > .9
+        order by r.rating desc
+        limit 10
 
-```sql
-select 
-    r.rating latest_rating, 
-    m.rating initial_rating, 
-    m.title, 
-    m.genres, 
-    m.releaseYear 
-from movies m
-left join movie_ratings r on m.movieId = r.movieId
-where r.rating > .9
-order by r.rating desc
-limit 10
+        ```
 
-```
+4. Click `RUN QUERY`.
 
-You should see a similar result:
+    ![alt](./images/results.png)
+5. Try out other SQL queries to explore the data.
 
-![alt](./images/results.png)
+## Clean up
 
-
-## Clean Up
-
-To destroy the demo, run the command below.
+To remove the quickstart, run the following command:
 
 ```bash
+cd pinot-quickstart
 docker compose down
 ```
 
-## Trouble Shooting
+## Troubleshooting
 
-If you get "No space left on device" when executing docker build.
+If you get "No space left on device" when executing docker build, run the following command:
 
-```docker system prune -f```
+```bash
+docker system prune -f
+```
 
+## Learn more about getting started with Pinot
 
-## Getting Started
-
-Get started for yourself by visiting StarTree developer page [here](https://dev.startree.ai/docs/pinot/getting-started/quick-start)
+To learn more about getting started with Pinot, see [StarTree documentation](https://dev.startree.ai/docs/pinot/getting-started/quick-start).
