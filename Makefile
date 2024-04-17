@@ -1,3 +1,6 @@
+GREEN=\033[0;32m
+NC=\033[0m # No Color
+
 base: create tables import info
 
 schema:
@@ -11,9 +14,10 @@ schema:
 		-dimensions=""
 
 create:
-	docker compose build --no-cache
+#	docker compose build --no-cache
 	docker compose up -d
-	@echo "Waiting for Pinot Controller to be ready..."
+	@echo "------------------------------------------------"
+	@echo "\n⏳ Waiting for Pinot Controller to be ready..."
 	@while true; do \
 		STATUS_CODE=$$(curl -s -o /dev/null -w '%{http_code}' \
 			'http://localhost:9000/health'); \
@@ -23,9 +27,9 @@ create:
 		sleep 2; \
 		echo "Waiting for Pinot Controller..."; \
 	done
-	@echo "🍷 Pinot Controller is ready."
+	@printf "$(GREEN)✔$(NC) 🍷🕺 Pinot Controller is ready!\n"
 
-	@echo "Waiting for Pinot Broker to be ready..."
+	@echo "\n⏳ Waiting for Pinot Broker to be ready..."
 	@while true; do \
 		STATUS_CODE=$$(curl -s -o /dev/null -w '%{http_code}' \
 			'http://localhost:8099/health'); \
@@ -35,14 +39,26 @@ create:
 		sleep 1; \
 		echo "Waiting for Pinot Broker..."; \
 	done
-	@echo "🍷 Pinot Broker is ready to receive queries."
-	
-	@echo "🪲 Waiting for Kafka to be ready..."
+	@printf "$(GREEN)✔$(NC) 🍷💁 Pinot Broker is ready to receive queries!\n"
+
+	@echo "\n⏳ Waiting for Pinot Server to be ready..."
+	@while true; do \
+		STATUS_CODE=$$(curl -s -o /dev/null -w '%{http_code}' \
+			'http://localhost:8097/health/readiness'); \
+		if [ "$$STATUS_CODE" -eq 200 ]; then \
+			break; \
+		fi; \
+		sleep 1; \
+		echo "Waiting for Pinot Server..."; \
+	done
+	@printf "$(GREEN)✔$(NC) 🍷👩‍🔧 Pinot Server is ready to receive requests!\n"
+
+	@echo "\n⏳ Waiting for Kafka to be ready..."
 	@while ! nc -z localhost 9092; do \
 		sleep 1; \
 		echo "Waiting for Kafka..."; \
 	done
-	@echo "🪲 Kafka is ready."
+	@printf "$(GREEN)✔$(NC) 🪲 Kafka is ready!\n"
 
 topic:
 	docker exec kafka kafka-topics.sh \
@@ -51,21 +67,22 @@ topic:
 		--topic movie_ratings
 
 tables:
-	docker exec pinot-controller ./bin/pinot-admin.sh \
+	@echo "\n 🎥 Creating movies table..."
+	@docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
 		-tableConfigFile /tmp/pinot/table/movies.table.json \
 		-schemaFile /tmp/pinot/table/movies.schema.json \
 		-exec
 
-	sleep 5
-
-	docker exec pinot-controller ./bin/pinot-admin.sh \
+	@echo "\n 🍿 Creating ratings table..."
+	@docker exec pinot-controller ./bin/pinot-admin.sh \
 		AddTable \
 		-tableConfigFile /tmp/pinot/table/ratings.table.json \
 		-schemaFile /tmp/pinot/table/ratings.schema.json \
 		-exec
+
 import:
-	docker exec pinot-controller ./bin/pinot-admin.sh \
+	@docker exec pinot-controller ./bin/pinot-admin.sh \
 		LaunchDataIngestionJob \
 		-jobSpecFile /tmp/pinot/table/jobspec.yaml
 
@@ -91,7 +108,9 @@ validate:
 	fi
 
 info:     	
+	@printf "\n==========================================================\n"
 	@printf "🍷 Pinot Query UI - \033[4mhttp://localhost:9000\033[0m\n"
+	@printf "==========================================================\n"
 
 destroy:
 	docker compose down -v
