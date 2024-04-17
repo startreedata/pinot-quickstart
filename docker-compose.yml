@@ -33,14 +33,14 @@ services:
     ports:
       - "9000:9000"
     environment:
-      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xlog:gc:gc-pinot-controller.log"
     depends_on:
       - pinot-zookeeper
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:9000/health || exit 1" ]
-      interval: 30s
+      interval: 10s
       timeout: 10s
-      retries: 3
+      retries: 5
       start_period: 10s
     volumes:
       - ./table/:/tmp/pinot/table/
@@ -54,7 +54,7 @@ services:
     ports:
       - "8099:8099"
     environment:
-      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xlog:gc:gc-pinot-broker.log"
     depends_on:
       pinot-controller:
         condition: service_healthy
@@ -62,8 +62,8 @@ services:
       test: [ "CMD-SHELL", "curl -f http://localhost:8099/health || exit 1" ]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
 
   pinot-server:
     image: apachepinot/pinot:1.1.0-21-openjdk
@@ -71,11 +71,18 @@ services:
     restart: unless-stopped
     container_name: "pinot-server"
     ports:
+      - "8097:8097"
       - "8098:8098"
     environment:
-      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx16G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms4G -Xmx16G -XX:+UseG1GC -XX:MaxGCPauseMillis=200  -Xlog:gc:gc-pinot-server.log"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8097/health/readiness || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
     depends_on:
-      pinot-broker:
+      pinot-controller:
         condition: service_healthy
 
   kafka:
