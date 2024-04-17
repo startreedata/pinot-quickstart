@@ -176,7 +176,7 @@ To stop and remove all quickstart services, run the following command:
 
 ```bash
 cd pinot-quickstart
-docker compose down
+docker compose down -v
 ```
 
 ## Troubleshooting
