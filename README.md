@@ -3,20 +3,6 @@
 Run the Apache Pinot™ quickstart in this repository to load one streaming data source (`movie_ratings`) and one batch data source (`movies`). 
 
 Then, see how to view, join, and query this data in Pinot.
-
-- [Apache Pinot™ quickstart readme](#apache-pinot-quickstart-readme)
-  - [Quickstart workflow diagram](#quickstart-workflow-diagram)
-  - [Run the Pinot quickstart](#run-the-pinot-quickstart)
-    - [Run the Pinot quickstart automatically](#run-the-pinot-quickstart-automatically)
-    - [Run the Pinot quickstart manually](#run-the-pinot-quickstart-manually)
-      - [Step 1: Build and launch with Docker](#step-1-build-and-launch-with-docker)
-      - [Step 2: Create a Kafka topic](#step-2-create-a-kafka-topic)
-      - [Step 3: Configure Pinot tables](#step-3-configure-pinot-tables)
-      - [Step 4: Load data into the movies table](#step-4-load-data-into-the-movies-table)
-  - [View, join, and query data in Pinot](#view-join-and-query-data-in-pinot)
-  - [Clean up](#clean-up)
-  - [Troubleshooting](#troubleshooting)
-  - [Learn more about getting started with Pinot](#learn-more-about-getting-started-with-pinot)
  
 ## Quickstart workflow diagram
 
@@ -34,7 +20,7 @@ p-->Movies
 
 ## Run the Pinot quickstart
 
-1. In terminal, clone this repository. For example, run: `git clone https://github.com/startreedata/pinot-quickstart.git`
+1. To clone this repo, run the following: `git clone https://github.com/startreedata/pinot-quickstart.git`
 2. [Install Docker](https://docs.docker.com/get-docker/). 
 3. Choose one of the following options:
    - [**Run the Pinot quickstart automatically**](#run-the-pinot-quickstart-automatically). Use this option to immediately load streaming and batch data in Pinot.
@@ -101,7 +87,7 @@ docker exec -it kafka \
 
 #### Step 3: Configure Pinot tables
 
-In Pinot, create the following two tables:
+Create the following two tables in Pinot:
 
 - A REALTIME table for streaming data (`movie_ratings`) (contains information to connect to Kafka)
 - An OFFLINE table for batch data (`movies`)
@@ -175,7 +161,6 @@ Now, both the REALTIME and OFFLINE tables are queryable, and you're ready to vie
 To stop and remove all quickstart services, run the following command:
 
 ```bash
-cd pinot-quickstart
 docker compose down -v
 ```
 
