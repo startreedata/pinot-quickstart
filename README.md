@@ -1,8 +1,13 @@
-# Pinot Getting Started Guide
+# Apache Pinot™ Quickstart
 
-Welcome to the Apache Pinot Getting Started guide.
-This repository will help you set up and run a demonstration that involves streaming and batch data sources.
-The demonstration includes a real-time stream of movie ratings and a batch data source of movies, which can be joined in Apache Pinot for querying.
+Welcome to the Apache Pinot quickstart.
+
+Here are the steps we'll take:
+
+* Start a development cluster locally with Docker
+* Ingest batch data
+* Ingest streaming data
+* Join the two data sources together and compute a real-time aggregation
 
 <!-- TOC -->
 * [Pinot Getting Started Guide](#pinot-getting-started-guide)
