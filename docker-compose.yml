@@ -86,7 +86,7 @@ services:
   kafka:
     image: docker.io/bitnami/kafka:3.6
     hostname: kafka
-    container_name: kafka
+    container_name: quickstart-pinot-kafka
     ports:
       - "9092:9092"
       - "29092:29092"
