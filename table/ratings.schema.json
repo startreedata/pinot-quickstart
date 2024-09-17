@@ -4,6 +4,9 @@
       "name" : "movieId",
       "dataType" : "INT"
     }, {
+      "name" : "title",
+      "dataType" : "STRING"
+    }, {
       "name" : "rating",
       "dataType" : "DOUBLE"
     } ],
